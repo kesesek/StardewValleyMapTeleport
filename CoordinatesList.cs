@@ -20,12 +20,18 @@ namespace MapTeleport
     }
     public class Coordinates
     {
-        public int id;
         public string displayName;
         public string teleportName;
         public int x;
         public int y;
-        public string altId;
-        public bool enabled = true;
+
+        public Coordinates(string displayName, string teleportName, int x, int y)
+        {
+            this.displayName = displayName;
+            this.teleportName = teleportName;
+            this.x = x;
+            this.y = y;
+        }
     }
+
 }

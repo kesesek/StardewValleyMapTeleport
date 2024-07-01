@@ -5,6 +5,8 @@ using StardewValley;
 using StardewValley.Menus;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MapTeleport
 {
@@ -17,6 +19,7 @@ namespace MapTeleport
         private static bool isSVE;
         private static bool hasRSV;
         private static bool hasES;
+        private static bool hasGrandpaFarm;
         private Harmony harmony;
 
         public static string dictPath = "hlyvia.StardewValleyMapTeleport/coordinates";
@@ -36,7 +39,7 @@ namespace MapTeleport
             isSVE = Helper.ModRegistry.IsLoaded("FlashShifter.SVECode");
             hasES = Helper.ModRegistry.IsLoaded("atravita.EastScarp");
             hasRSV = Helper.ModRegistry.IsLoaded("Rafseazz.RidgesideVillage");
-            
+            hasGrandpaFarm = Helper.ModRegistry.IsLoaded("flashshifter.GrandpasFarm");
 
             harmony = new Harmony(ModManifest.UniqueID);
             harmony.PatchAll();
@@ -54,7 +57,18 @@ namespace MapTeleport
                 }
                 if (isSVE)
                 {
+                    string farmType = Game1.GetFarmTypeID();
+                    SMonitor.Log($"Get farmType: {farmType}", LogLevel.Info);
+
                     coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/sve_coordinates.json"));
+                    if (hasGrandpaFarm && farmType.Equals("0"))
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 95, 49));
+                    }
+                    else
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 64, 15));
+                    }
                 }
                 else
                 {

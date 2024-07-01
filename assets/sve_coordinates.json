@@ -1,12 +1,6 @@
 {
     "coordinates": [
         {
-            "displayName": "Farm/Default",
-            "teleportName": "Farm",
-            "x": 64,
-            "y": 15
-        },
-        {
             "displayName": "BusStop/Default",
             "teleportName": "BusStop",
             "x": 14,

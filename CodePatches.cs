@@ -27,6 +27,12 @@ namespace MapTeleport
             var coordinates = SHelper.GameContent.Load<CoordinatesList>(dictPath);
             bool found = false;
 
+            SMonitor.Log("All clickable components:", LogLevel.Debug);
+            foreach (ClickableComponent component in components)
+            {
+                SMonitor.Log($"Component: ID={component.myID}, Name={component.name}, Bounds={component.bounds}, Visible={component.visible}", LogLevel.Debug);
+            }
+
             Dictionary<string, Coordinates> coordinatesDict = new Dictionary<string, Coordinates>(StringComparer.OrdinalIgnoreCase);
             foreach (var coord in coordinates.coordinates)
             {
