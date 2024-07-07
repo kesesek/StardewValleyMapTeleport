@@ -20,6 +20,7 @@ namespace MapTeleport
     }
     public class Coordinates
     {
+        public string label;
         public string displayName;
         public string teleportName;
         public int x;

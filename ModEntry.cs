@@ -3,10 +3,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
-using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace MapTeleport
 {
@@ -21,6 +17,7 @@ namespace MapTeleport
         private static bool hasES;
         private static bool hasGrandpaFarm;
         private Harmony harmony;
+        private IClickableMenu previousMenu = null;
 
         public static string dictPath = "hlyvia.StardewValleyMapTeleport/coordinates";
 
@@ -34,6 +31,8 @@ namespace MapTeleport
             SMonitor = Monitor;
             SHelper = helper;
 
+            helper.Events.Input.ButtonPressed += OnButtonPressed;
+            helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
             helper.Events.Content.AssetRequested += Content_AssetRequested;
             helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
             isSVE = Helper.ModRegistry.IsLoaded("FlashShifter.SVECode");
@@ -43,6 +42,111 @@ namespace MapTeleport
 
             harmony = new Harmony(ModManifest.UniqueID);
             harmony.PatchAll();
+        }
+
+
+private void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+        {
+            // 获取当前活动的菜单
+            IClickableMenu currentMenu = Game1.activeClickableMenu;
+
+            // 检查菜单是否变化
+            if (currentMenu != previousMenu)
+            {
+                // 记录菜单变化
+                if (currentMenu == null)
+                {
+                    Monitor.Log("activeClickableMenu changed to: null", LogLevel.Info);
+                }
+                else
+                {
+                    Monitor.Log($"activeClickableMenu changed to: {currentMenu.GetType().Name}", LogLevel.Info);
+                    LogMenuComponents(currentMenu);
+
+                    CheckSubMenu(currentMenu);
+                }
+
+                // 更新 previousMenu 变量
+                previousMenu = currentMenu;
+            }
+        }
+
+        // 记录菜单的可点击组件
+        public void LogMenuComponents(IClickableMenu menu)
+        {
+            if (menu.allClickableComponents != null)
+            {
+                foreach (var component in menu.allClickableComponents)
+                {
+                    Monitor.Log($"Component: {component.name}, Bounds: {component.bounds}", LogLevel.Info);
+                }
+            }
+            else
+            {
+                Monitor.Log("No clickable components found.", LogLevel.Info);
+            }
+        }
+
+        // 检查子菜单
+        private void CheckSubMenu(IClickableMenu menu)
+        {
+            if (menu is GameMenu gameMenu)
+            {
+                var currentPage = menu.GetChildMenu();
+                if (currentPage != null)
+                {
+                    Monitor.Log($"Current childpage in GameMenu is: {currentPage.GetType().Name}", LogLevel.Info);
+                    CheckSubMenu(currentPage);
+                }
+                else
+                {
+                    Monitor.Log("No more childpage", LogLevel.Info);
+                }
+            }
+        }
+
+
+        public void OnButtonPressed(object sender, ButtonPressedEventArgs e)
+        {
+            // 检查是否为鼠标左键点击
+            if (e.Button == SButton.MouseLeft)
+            {
+                // 获取鼠标点击的位置
+                var cursorPosition = e.Cursor.ScreenPixels;
+                Monitor.Log($"Mouse left button clicked at {cursorPosition.X}, {cursorPosition.Y}", LogLevel.Info);
+                if (Game1.activeClickableMenu != null)
+                {
+                    string name = Game1.activeClickableMenu.GetType().Name;
+                    Monitor.Log($"active menu: {name}", LogLevel.Info);
+                    printClickableComponents(Game1.activeClickableMenu);
+
+                    var child = Game1.activeClickableMenu.GetChildMenu();
+                    if (child != null)
+                    {
+                        Monitor.Log($"child: {child.GetType().Name}", LogLevel.Info);
+                        printClickableComponents(child);
+                    }
+                    else{
+                        Monitor.Log("No child", LogLevel.Info);
+                    }
+                }
+            }
+        }
+
+        public void printClickableComponents(IClickableMenu menu)
+        {
+            var list = menu.allClickableComponents;
+            if(list != null)
+            {
+                foreach (var item in list)
+                {
+                    Monitor.Log($"clickable item: {item.name}", LogLevel.Info);
+                }
+            }
+            else
+            {
+                Monitor.Log($"no clickable components", LogLevel.Info);
+            }
         }
 
 
