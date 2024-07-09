@@ -21,6 +21,7 @@ namespace MapTeleport
     public class Coordinates
     {
         public string label;
+        public string altId;
         public string displayName;
         public string teleportName;
         public int x;
