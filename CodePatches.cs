@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace MapTeleport
 {
@@ -21,11 +22,17 @@ namespace MapTeleport
             if (!Config.ModEnabled)
                 return false;
 
-            var allCoordinates = ModEntry.context.allCoordinates;
+            if (addedCoordinates == null)
+            {
+                addedCoordinates = SHelper.Data.ReadJsonFile<CoordinatesList>("coordinates.json");
+                addedCoordinates ??= new CoordinatesList();
+            }
+            var allCoordinates = SHelper.GameContent.Load<CoordinatesList>(dictPath);
+
             bool found = false;
 
             Dictionary<string, Coordinates> coordinatesDict = new Dictionary<string, Coordinates>(StringComparer.OrdinalIgnoreCase);
-            foreach (var coord in allCoordinates)
+            foreach (var coord in allCoordinates.coordinates)
             {
                 if (!coordinatesDict.ContainsKey(coord.displayName))
                 {
@@ -35,11 +42,21 @@ namespace MapTeleport
 
             foreach (ClickableComponent component in components)
             {
-                if (coordinatesDict.TryGetValue(component.name, out Coordinates tpCoordinate))
+                string componentName = component.name;
+                string pattern = @"^[A-Za-z]+/[A-Za-z]+_[A-Za-z]+$";
+                Regex regex = new Regex(pattern);
+
+                // Just in case the name has "extended hours"
+                if (regex.IsMatch(componentName))
+                {
+                    componentName = componentName.Split("_")[0];
+                }
+
+                if (coordinatesDict.TryGetValue(componentName, out Coordinates tpCoordinate))
                 {
                     if (component.containsPoint(x, y) && component.visible)
                     {
-                        SMonitor.Log($"Teleporting to {tpCoordinate.displayName}\nCoordinate: {tpCoordinate.teleportName}({tpCoordinate.x},{tpCoordinate.y})", LogLevel.Debug);
+                        SMonitor.Log($"Teleporting to {tpCoordinate.displayName}\nCoordinate: {tpCoordinate.teleportName}({tpCoordinate.x},{tpCoordinate.y})", LogLevel.Info);
                         Game1.activeClickableMenu?.exitThisMenu(true);
                         Game1.warpFarmer(tpCoordinate.teleportName, tpCoordinate.x, tpCoordinate.y, false);
                         found = true;
@@ -50,7 +67,7 @@ namespace MapTeleport
 
             if (!found)
             {
-                SMonitor.Log("No teleportation coordinate found.", LogLevel.Debug);
+                SMonitor.Log("No teleportation coordinate found.", LogLevel.Warn);
             }
 
             return found;
@@ -73,18 +90,21 @@ namespace MapTeleport
             if (!Config.ModEnabled)
                 return false;
 
-            var allCoordinates = ModEntry.context.allCoordinates;
-            SMonitor.Log($"Loaded coordinates, count {allCoordinates.Count}", LogLevel.Debug);
+            if (addedCoordinates == null)
+            {
+                addedCoordinates = SHelper.Data.ReadJsonFile<CoordinatesList>("coordinates.json");
+                addedCoordinates ??= new CoordinatesList();
+            }
+            var allCoordinates = SHelper.GameContent.Load<CoordinatesList>(dictPath);
 
             var coordinatesDict = new Dictionary<string, Coordinates>();
-            foreach (var coord in allCoordinates)
+            foreach (var coord in allCoordinates.coordinates)
             {
                 if (!string.IsNullOrEmpty(coord.altId))
                 {
                     coordinatesDict[coord.altId] = coord;
                 }
             }
-            SMonitor.Log($"make dictionary, {coordinatesDict.Count}", LogLevel.Info);
 
             var mapData = GetPrivateField<object>(mapMenu, "MapData");
             var topLeft = GetPrivateField<Vector2>(mapMenu, "TopLeft");
@@ -118,15 +138,13 @@ namespace MapTeleport
                 var mapLocation = entry.Value;
                 var areaRect = GetPropertyOrField<Rectangle>(mapLocation, "AreaRect");
                 string areaRectCoord = $"{areaRect.X}.{areaRect.Y}";
-                var text = GetPropertyOrField<string>(mapLocation, "Text");
-                SMonitor.Log($"{areaRectCoord} and {text}", LogLevel.Info);
 
                 // Check if clicked in any area
                 if (areaRect.Contains(relativeX, relativeY))
                 {
                     if (coordinatesDict.TryGetValue(areaRectCoord, out var coord))
                     {
-                        SMonitor.Log($"Found match: {coord.altId}. Teleporting to {coord.displayName} at ({coord.x}, {coord.y})", LogLevel.Debug);
+                        SMonitor.Log($"Found match: {coord.altId}. Teleporting to {coord.displayName} at ({coord.x}, {coord.y})", LogLevel.Info);
                         Game1.activeClickableMenu?.exitThisMenu(true);
                         Game1.warpFarmer(coord.teleportName, coord.x, coord.y, false);
                         return true;
@@ -136,7 +154,6 @@ namespace MapTeleport
                 }
             }
 
-            SMonitor.Log("Last line, nothing founded.", LogLevel.Info);
             return false;
         }
 
@@ -174,7 +191,6 @@ namespace MapTeleport
         }
 
 
-
         [HarmonyPatch(typeof(IClickableMenu), nameof(IClickableMenu.receiveLeftClick))]
         public class RSVMapPage_receiveLeftClick_Patch
         {
@@ -190,7 +206,5 @@ namespace MapTeleport
                 return true;
             }
         }
-
-
     }
 }

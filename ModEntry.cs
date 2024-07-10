@@ -17,7 +17,6 @@ namespace MapTeleport
         private static bool hasES;
         private static bool hasGrandpaFarm;
         private Harmony harmony;
-        private List<Coordinates> allCoordinates;
 
         public static string dictPath = "hlyvia.StardewValleyMapTeleport/coordinates";
 
@@ -37,58 +36,48 @@ namespace MapTeleport
             hasES = Helper.ModRegistry.IsLoaded("atravita.EastScarp");
             hasRSV = Helper.ModRegistry.IsLoaded("Rafseazz.RidgesideVillage");
             hasGrandpaFarm = Helper.ModRegistry.IsLoaded("flashshifter.GrandpasFarm");
-            allCoordinates = LoadAllCoordinates();
 
             harmony = new Harmony(ModManifest.UniqueID);
             harmony.PatchAll();
-        }
-
-
-
-        private List<Coordinates> LoadAllCoordinates()
-        {
-            CoordinatesList coordinatesList = new CoordinatesList();
-
-            if (File.Exists(Path.Combine(SHelper.DirectoryPath, "found_coordinates.json")))
-            {
-                coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("found_coordinates.json"));
-            }
-            if (isSVE)
-            {
-                string farmType = Game1.GetFarmTypeID();
-                SMonitor.Log($"Get farmType: {farmType}", LogLevel.Info);
-
-                coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/sve_coordinates.json"));
-                if (hasGrandpaFarm && farmType.Equals("0"))
-                {
-                    coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 95, 49));
-                }
-                else
-                {
-                    coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 64, 15));
-                }
-            }
-            else
-            {
-                coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/coordinates.json"));
-            }
-            if (hasES)
-            {
-                coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/es_coordinates.json"));
-            }
-            if (hasRSV)
-            {
-                coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/rsv_coordinates.json"));
-            }
-
-            return coordinatesList.coordinates;
         }
 
         private void Content_AssetRequested(object sender, AssetRequestedEventArgs e)
         {
             if (e.NameWithoutLocale.IsEquivalentTo(dictPath))
             {
-                e.LoadFrom(() => new CoordinatesList { coordinates = allCoordinates }, AssetLoadPriority.Exclusive);
+                CoordinatesList coordinatesList = new CoordinatesList();
+                if (File.Exists(Path.Combine(SHelper.DirectoryPath, "found_coordinates.json")))
+                {
+                    coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("found_coordinates.json"));
+                }
+                if (isSVE)
+                {
+                    string farmType = Game1.GetFarmTypeID();
+                    SMonitor.Log($"Get farmType: {farmType}", LogLevel.Info);
+
+                    coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/sve_coordinates.json"));
+                    if (hasGrandpaFarm && farmType.Equals("0"))
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 95, 49));
+                    }
+                    else
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 64, 15));
+                    }
+                }
+                else
+                {
+                    coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/coordinates.json"));
+                }
+                if (hasES)
+                {
+                    coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/es_coordinates.json"));
+                }
+                if (hasRSV)
+                {
+                    coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/rsv_coordinates.json"));
+                }
+                e.LoadFrom(() => coordinatesList, AssetLoadPriority.Exclusive);
             }
         }
 
