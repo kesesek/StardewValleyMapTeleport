@@ -6,5 +6,5 @@
   "UniqueID": "hlyvia.StardewValleyMapTeleport",
   "EntryDll": "MapTeleport.dll",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": ["Nexus:25279"]
+  "UpdateKeys": ["GitHub:kesesek/StardewValleyMapTeleport"]
 }
