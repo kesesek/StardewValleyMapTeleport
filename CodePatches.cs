@@ -18,7 +18,6 @@ namespace MapTeleport
 
         public static bool CheckClickableComponents(List<ClickableComponent> components, int topX, int topY, int x, int y)
         {
-            SMonitor.Log($"clicked x:{x} y:{y}", LogLevel.Debug);
             if (!Config.ModEnabled)
                 return false;
 
