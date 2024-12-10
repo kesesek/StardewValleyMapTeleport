@@ -16,6 +16,7 @@ namespace MapTeleport
         private static bool hasRSV;
         private static bool hasES;
         private static bool hasGrandpaFarm;
+        private static bool hasFrontireFarm;
         private Harmony harmony;
 
         public static string dictPath = "hlyvia.StardewValleyMapTeleport/coordinates";
@@ -36,6 +37,7 @@ namespace MapTeleport
             hasES = Helper.ModRegistry.IsLoaded("atravita.EastScarp");
             hasRSV = Helper.ModRegistry.IsLoaded("Rafseazz.RidgesideVillage");
             hasGrandpaFarm = Helper.ModRegistry.IsLoaded("flashshifter.GrandpasFarm");
+            hasFrontireFarm = Helper.ModRegistry.IsLoaded("flashshifter.FrontierFarm");
 
             harmony = new Harmony(ModManifest.UniqueID);
             harmony.PatchAll();
@@ -63,6 +65,11 @@ namespace MapTeleport
                     else
                     {
                         coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 64, 15));
+                    }
+
+                    if (hasFrontireFarm && farmType.Equals("FrontierFarm"))
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 118, 26));
                     }
                 }
                 else
