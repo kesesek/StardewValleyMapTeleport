@@ -58,18 +58,21 @@ namespace MapTeleport
                     SMonitor.Log($"Get farmType: {farmType}", LogLevel.Info);
 
                     coordinatesList.AddAll(Helper.Data.ReadJsonFile<CoordinatesList>("assets/sve_coordinates.json"));
-                    if (hasGrandpaFarm && farmType.Equals("0"))
+                    if (hasFrontireFarm && hasGrandpaFarm && farmType.Equals("FrontierFarm"))
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 118, 26));
+                    }
+                    else if (hasGrandpaFarm && farmType.Equals("0"))
                     {
                         coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 95, 49));
+                    }
+                    else if (hasFrontireFarm && farmType.Equals("FrontierFarm"))
+                    {
+                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 118, 26));
                     }
                     else
                     {
                         coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 64, 15));
-                    }
-
-                    if (hasFrontireFarm && farmType.Equals("FrontierFarm"))
-                    {
-                        coordinatesList.Add(new Coordinates("Farm/Default", "Farm", 118, 26));
                     }
                 }
                 else
